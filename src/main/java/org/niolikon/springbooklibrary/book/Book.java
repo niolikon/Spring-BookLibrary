@@ -12,10 +12,11 @@ import javax.persistence.Table;
 
 import org.niolikon.springbooklibrary.author.Author;
 import org.niolikon.springbooklibrary.publisher.Publisher;
+import org.springframework.data.domain.Persistable;
 
 @Entity
 @Table(name = "book")
-public class Book {
+public class Book implements Persistable<Long> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,18 +25,18 @@ public class Book {
     @Column(name = "title")
     private String title;
 
-    @ManyToOne(cascade=CascadeType.ALL)
-    @JoinColumn(name = "id_author", nullable=false, updatable=true)
+    @ManyToOne
+    @JoinColumn(name = "author_id", nullable=false, updatable=true)
     private Author author;
 
-    @ManyToOne(cascade=CascadeType.ALL)
-    @JoinColumn(name = "id_publisher", nullable=false, updatable=true)
+    @ManyToOne
+    @JoinColumn(name = "publisher_id", nullable=false, updatable=true)
     private Publisher publisher;
     
     @Column(name = "quantity")
     private int quantity;
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
@@ -118,4 +119,13 @@ public class Book {
             return false;
         return true;
     }
+
+	@Override
+	public boolean isNew() {
+		if (this.id == null) {
+			return true;
+		}
+		
+		return false;
+	}
 }
