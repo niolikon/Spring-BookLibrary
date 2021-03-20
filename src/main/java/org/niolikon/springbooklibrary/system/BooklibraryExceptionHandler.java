@@ -12,6 +12,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import org.niolikon.springbooklibrary.system.exceptions.EntityNotFoundException;
+import org.niolikon.springbooklibrary.system.exceptions.EntityDuplicationException;
 import org.niolikon.springbooklibrary.system.web.ApiErrorResponse;
 
 @ControllerAdvice
@@ -20,6 +21,11 @@ public class BooklibraryExceptionHandler extends ResponseEntityExceptionHandler 
     @ExceptionHandler({EntityNotFoundException.class})
     public ResponseEntity<Object> handleNotFoundException(Exception ex, WebRequest request) {
         return prepareRestException(ex, request, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler({EntityDuplicationException.class})
+    public ResponseEntity<Object> handleDuplicationException(Exception ex, WebRequest request) {
+        return prepareRestException(ex, request, HttpStatus.CONFLICT);
     }
 
     @Override
@@ -37,7 +43,7 @@ public class BooklibraryExceptionHandler extends ResponseEntityExceptionHandler 
         } else if (StringUtils.isEmpty(error)) {
             error = "message not available";
         }
-        final ApiErrorResponse response = ApiErrorResponse.valueOf(status.value(), getPath(request), error, ex.getClass().getName());
+        final ApiErrorResponse response = ApiErrorResponse.valueOf(status.value(), getPath(request), error, ex.getClass().getSimpleName());
         return new ResponseEntity<>(response, new HttpHeaders(), status);
     }
 

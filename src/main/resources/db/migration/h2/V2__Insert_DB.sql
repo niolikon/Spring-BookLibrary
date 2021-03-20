@@ -30,14 +30,14 @@ VALUES
 -- Data for table book
 -- --------------------------------------------------------
 
-INSERT INTO book (id, title, id_author, id_publisher, quantity) 
+INSERT INTO book (id, title, author_id, publisher_id, quantity) 
 VALUES 
 (1, 'Il colore venuto dallo spazio', 1, 2, 1);
 
-INSERT INTO book (id, title, id_author, id_publisher, quantity)
+INSERT INTO book (id, title, author_id, publisher_id, quantity)
 VALUES 
 (2, 'Harry Potter e la pietra filosofale', 3, 1, 2);
 
-INSERT INTO book (id, title, id_author, id_publisher, quantity)
+INSERT INTO book (id, title, author_id, publisher_id, quantity)
 VALUES 
 (3, 'Racconti Incompiuti', 2, 1, 1);
