@@ -1,15 +1,22 @@
 package org.niolikon.springbooklibrary.publisher;
 
+import java.util.Set;
+
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
+import org.niolikon.springbooklibrary.book.Book;
+import org.springframework.data.domain.Persistable;
 
 @Entity
 @Table(name = "publisher")
-public class Publisher {
+public class Publisher implements Persistable<Long> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,8 +24,11 @@ public class Publisher {
 
     @Column(name = "name")
     private String name;
+    
+    @OneToMany(mappedBy="publisher",cascade=CascadeType.REMOVE)
+    Set<Book> books;
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
@@ -61,4 +71,13 @@ public class Publisher {
             return false;
         return true;
     }
+
+	@Override
+	public boolean isNew() {
+		if (this.id == null) {
+			return true;
+		}
+		
+		return false;
+	}
 }

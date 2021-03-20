@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dataset>
+    <author id="1" name="Howard" surname="Lovecraft"/>
+    <author id="2" name="J.R.R." surname="Tolkien"/> 
+    <author id="3" name="J.K." surname="Rowling"/> 
+</dataset>

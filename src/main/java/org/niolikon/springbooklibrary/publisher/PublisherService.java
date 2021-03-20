@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.transaction.Transactional;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -14,27 +15,28 @@ import org.springframework.stereotype.Service;
 import org.niolikon.springbooklibrary.publisher.web.PublisherRequest;
 import org.niolikon.springbooklibrary.publisher.web.PublisherView;
 import org.niolikon.springbooklibrary.publisher.converter.PublisherToPublisherViewConverter;
+import org.niolikon.springbooklibrary.system.MessageProvider;
+import org.niolikon.springbooklibrary.system.exceptions.EntityDuplicationException;
 import org.niolikon.springbooklibrary.system.exceptions.EntityNotFoundException;
-import org.niolikon.springbooklibrary.commons.MessageUtil;
 
 @Service
 public class PublisherService {
     
     private final PublisherRepository publisherRepo;
     private final PublisherToPublisherViewConverter publisherConverter;
-    private final MessageUtil messageUtil;
+    private final MessageProvider messageProvider;
     
     public PublisherService(PublisherRepository publisherRepo,
             PublisherToPublisherViewConverter publisherConverter,
-            MessageUtil messageUtil) {
+            MessageProvider messageUtil) {
         this.publisherRepo = publisherRepo;
         this.publisherConverter = publisherConverter;
-        this.messageUtil = messageUtil;
+        this.messageProvider = messageUtil;
     }
     
     public Publisher findPublisherOrThrow(Long id) {
         return publisherRepo.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(messageUtil.getMessage("publisher.NotFound", id)));
+                .orElseThrow(() -> new EntityNotFoundException(messageProvider.getMessage("publisher.NotFound", id)));
     }
     
     public PublisherView getPublisher(Long id) {
@@ -55,8 +57,13 @@ public class PublisherService {
     public PublisherView create(PublisherRequest req) {
         Publisher publisher = new Publisher();
         publisher = this.fetchFromRequest(publisher, req);
-        Publisher publisherSaved = publisherRepo.save(publisher);
-        return publisherConverter.convert(publisherSaved);
+        
+        try {
+            Publisher publisherSaved = publisherRepo.save(publisher);
+            return publisherConverter.convert(publisherSaved);
+        }  catch (DataIntegrityViolationException e) {
+            throw new EntityDuplicationException(messageProvider.getMessage("publisher.Duplication", publisher.getName()));
+        }
     }
     
     @Transactional
@@ -64,7 +71,7 @@ public class PublisherService {
         try {
             publisherRepo.deleteById(id);
         } catch (EmptyResultDataAccessException e) {
-            throw new EntityNotFoundException(messageUtil.getMessage("publisher.NotFound", id));
+            throw new EntityNotFoundException(messageProvider.getMessage("publisher.NotFound", id));
         }
     }
     
@@ -78,5 +85,4 @@ public class PublisherService {
         publisher.setName(req.getName());
         return publisher;
     }
-
 }

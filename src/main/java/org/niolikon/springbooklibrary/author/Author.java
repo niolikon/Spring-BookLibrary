@@ -1,10 +1,15 @@
 package org.niolikon.springbooklibrary.author;
 
+import java.util.Set;
+
 import javax.persistence.*;
+
+import org.niolikon.springbooklibrary.book.Book;
+import org.springframework.data.domain.Persistable;
 
 @Entity
 @Table(name = "author")
-public class Author {
+public class Author implements Persistable<Long> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -15,8 +20,11 @@ public class Author {
 
     @Column(name = "surname")
     private String surname;
+    
+    @OneToMany(mappedBy="author",cascade=CascadeType.REMOVE)
+    Set<Book> books;
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
@@ -73,4 +81,13 @@ public class Author {
             return false;
         return true;
     }
+
+	@Override
+	public boolean isNew() {
+		if (this.id == null) {
+			return true;
+		}
+		
+		return false;
+	}
 }

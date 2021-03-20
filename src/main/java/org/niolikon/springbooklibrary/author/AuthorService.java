@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.transaction.Transactional;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -14,27 +15,28 @@ import org.springframework.stereotype.Service;
 import org.niolikon.springbooklibrary.author.converter.AuthorToAuthorViewConverter;
 import org.niolikon.springbooklibrary.author.web.AuthorRequest;
 import org.niolikon.springbooklibrary.author.web.AuthorView;
+import org.niolikon.springbooklibrary.system.MessageProvider;
+import org.niolikon.springbooklibrary.system.exceptions.EntityDuplicationException;
 import org.niolikon.springbooklibrary.system.exceptions.EntityNotFoundException;
-import org.niolikon.springbooklibrary.commons.MessageUtil;
 
 @Service
 public class AuthorService {
     
     private final AuthorRepository authorRepo;
     private final AuthorToAuthorViewConverter authorConverter;
-    private final MessageUtil messageUtil;
+    private final MessageProvider messageProvider;
     
     public AuthorService(AuthorRepository authorRepo,
             AuthorToAuthorViewConverter authorConverter,
-            MessageUtil messageUtil) {
+            MessageProvider messageUtil) {
         this.authorRepo = authorRepo;
         this.authorConverter = authorConverter;
-        this.messageUtil = messageUtil;
+        this.messageProvider = messageUtil;
     }
     
     public Author findAuthorOrThrow(Long id) {
         return authorRepo.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(messageUtil.getMessage("author.NotFound", id)));
+                .orElseThrow(() -> new EntityNotFoundException(messageProvider.getMessage("author.NotFound", id)));
     }
     
     public AuthorView getAuthor(Long id) {
@@ -55,8 +57,13 @@ public class AuthorService {
     public AuthorView create(AuthorRequest req) {
         Author author = new Author();
         this.fetchFromRequest(author, req);
-        Author authorSaved = authorRepo.save(author);
-        return authorConverter.convert(authorSaved);
+
+        try {
+            Author authorSaved = authorRepo.save(author);
+            return authorConverter.convert(authorSaved);
+        } catch (DataIntegrityViolationException e) {
+            throw new EntityDuplicationException(messageProvider.getMessage("author.Duplication", author.getName(), author.getSurname()));
+        }
     }
     
     @Transactional
@@ -64,7 +71,7 @@ public class AuthorService {
         try {
             authorRepo.deleteById(id);
         } catch (EmptyResultDataAccessException e) {
-            throw new EntityNotFoundException(messageUtil.getMessage("author.NotFound", id));
+            throw new EntityNotFoundException(messageProvider.getMessage("author.NotFound", id));
         }
     }
     
