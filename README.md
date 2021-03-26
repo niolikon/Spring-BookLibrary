@@ -40,7 +40,7 @@ java -jar target/*.jar
 ```
 
 ## Test
-This project provides a [sample dashboard](Spring-BootLibrary_Insomnia-Dashboard) for [Insomnia REST Client](https://insomnia.rest/)
+This project provides a [sample dashboard](Spring-BootLibrary_Insomnia-Dashboard.json) for [Insomnia REST Client](https://insomnia.rest/)
 with some pre-configured REST requests.
 
 <img src="Spring-BootLibrary_Insomnia-Capture.jpg">
