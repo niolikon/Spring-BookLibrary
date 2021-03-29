@@ -24,7 +24,8 @@ Project is created with:
 
 ## Features
 - [x] Book management
-- [ ] User management
+- [x] User management
+- [ ] User access restrictions based on roles
 - [ ] Reservation management
 
 

@@ -12,6 +12,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import org.niolikon.springbooklibrary.system.exceptions.EntityNotFoundException;
+import org.niolikon.springbooklibrary.system.exceptions.EntityNotProcessableException;
 import org.niolikon.springbooklibrary.system.exceptions.EntityDuplicationException;
 import org.niolikon.springbooklibrary.system.web.ApiErrorResponse;
 
@@ -26,6 +27,11 @@ public class BooklibraryExceptionHandler extends ResponseEntityExceptionHandler 
     @ExceptionHandler({EntityDuplicationException.class})
     public ResponseEntity<Object> handleDuplicationException(Exception ex, WebRequest request) {
         return prepareRestException(ex, request, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler({EntityNotProcessableException.class})
+    public ResponseEntity<Object> handleNotProcessableException(Exception ex, WebRequest request) {
+        return prepareRestException(ex, request, HttpStatus.UNPROCESSABLE_ENTITY);
     }
 
     @Override
