@@ -1,5 +1,6 @@
 package org.niolikon.springbooklibrary.book;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -20,6 +21,7 @@ import org.niolikon.springbooklibrary.publisher.Publisher;
 import org.niolikon.springbooklibrary.system.exceptions.EntityDuplicationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -36,6 +38,9 @@ public class BookControllerIntegrationTest extends DBUnitTest {
     
     @Autowired
     private MockMvc wockMvc;
+
+    private final String ADMIN_USERNAME   = "admin";
+    private final String ADMIN_PASSWORD   = "admin";
     
     private List<Book> fetchSnapshot() throws DataSetException {
         List<Book> bookList = new ArrayList<>();
@@ -89,8 +94,10 @@ public class BookControllerIntegrationTest extends DBUnitTest {
         Long book_id = book.getId();
         
         wockMvc.perform(MockMvcRequestBuilders.get("/books/"+ book_id.toString())
-        .contentType(MediaType.APPLICATION_JSON)
-        .accept(MediaType.APPLICATION_JSON))
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
         
         //.andDo(print())
         
@@ -113,8 +120,10 @@ public class BookControllerIntegrationTest extends DBUnitTest {
         Long book_outofboundId = book.getId() + 1;
 
         wockMvc.perform(MockMvcRequestBuilders.get("/books/"+ book_outofboundId.toString())
-        .contentType(MediaType.APPLICATION_JSON)
-        .accept(MediaType.APPLICATION_JSON))
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
         
         //.andDo(print())
         
@@ -131,8 +140,10 @@ public class BookControllerIntegrationTest extends DBUnitTest {
         Book book_last = snapshot.get(snapshot_lastIdx);
         
         wockMvc.perform(MockMvcRequestBuilders.get("/books")
-        .contentType(MediaType.APPLICATION_JSON)
-        .accept(MediaType.APPLICATION_JSON))
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
         
         //.andDo(print())
         
@@ -169,9 +180,11 @@ public class BookControllerIntegrationTest extends DBUnitTest {
         bookRequest.setPublisherId(book_last.getPublisher().getId());
         
         wockMvc.perform(MockMvcRequestBuilders.post("/books")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(asJsonString(bookRequest))
-        .accept(MediaType.APPLICATION_JSON))
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(bookRequest))
+                .accept(MediaType.APPLICATION_JSON))
         
         //.andDo(print())
         
@@ -198,9 +211,11 @@ public class BookControllerIntegrationTest extends DBUnitTest {
         bookRequest.setPublisherId(book.getPublisher().getId());
         
         wockMvc.perform(MockMvcRequestBuilders.post("/books")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(asJsonString(bookRequest))
-        .accept(MediaType.APPLICATION_JSON))
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(bookRequest))
+                .accept(MediaType.APPLICATION_JSON))
         
         //.andDo(print())
         
@@ -216,8 +231,10 @@ public class BookControllerIntegrationTest extends DBUnitTest {
         Long book_id = book.getId();
         
         wockMvc.perform(MockMvcRequestBuilders.delete("/books/"+ book_id.toString())
-        .contentType(MediaType.APPLICATION_JSON)
-        .accept(MediaType.APPLICATION_JSON))
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
         
         //.andDo(print())
         
@@ -232,8 +249,10 @@ public class BookControllerIntegrationTest extends DBUnitTest {
         Long book_outofboundId = book.getId() + 1;
 
         wockMvc.perform(MockMvcRequestBuilders.delete("/books/"+ book_outofboundId.toString())
-        .contentType(MediaType.APPLICATION_JSON)
-        .accept(MediaType.APPLICATION_JSON))
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
         
         //.andDo(print())
         
@@ -255,9 +274,11 @@ public class BookControllerIntegrationTest extends DBUnitTest {
         bookRequest.setPublisherId(book.getPublisher().getId());
         
         wockMvc.perform(MockMvcRequestBuilders.put("/books/" + book_id.toString())
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(asJsonString(bookRequest))
-        .accept(MediaType.APPLICATION_JSON))
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(bookRequest))
+                .accept(MediaType.APPLICATION_JSON))
         
         //.andDo(print())
         
@@ -282,9 +303,11 @@ public class BookControllerIntegrationTest extends DBUnitTest {
         bookRequest.setTitle(book.getTitle());
         
         wockMvc.perform(MockMvcRequestBuilders.put("/books/" + book_outofboundId.toString())
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(asJsonString(bookRequest))
-        .accept(MediaType.APPLICATION_JSON))
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(bookRequest))
+                .accept(MediaType.APPLICATION_JSON))
         
         //.andDo(print())
         

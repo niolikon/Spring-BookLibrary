@@ -1,5 +1,6 @@
 package org.niolikon.springbooklibrary.publisher;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -17,6 +18,7 @@ import org.niolikon.springbooklibrary.commons.DBUnitTest;
 import org.niolikon.springbooklibrary.system.exceptions.EntityDuplicationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -33,6 +35,9 @@ public class PublisherControllerIntegrationTest extends DBUnitTest {
     
     @Autowired
     private MockMvc wockMvc;
+
+    private final String ADMIN_USERNAME   = "admin";
+    private final String ADMIN_PASSWORD   = "admin";
     
     private List<Publisher> fetchSnapshot() throws DataSetException {
         List<Publisher> publisherList = new ArrayList<>();
@@ -59,8 +64,10 @@ public class PublisherControllerIntegrationTest extends DBUnitTest {
         Long publisher_id = publisher.getId();
         
         wockMvc.perform(MockMvcRequestBuilders.get("/publishers/"+ publisher_id.toString())
-        .contentType(MediaType.APPLICATION_JSON)
-        .accept(MediaType.APPLICATION_JSON))
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
         
         //.andDo(print())
         
@@ -77,8 +84,10 @@ public class PublisherControllerIntegrationTest extends DBUnitTest {
         Long publisher_outofboundId = publisher.getId() + 1;
 
         wockMvc.perform(MockMvcRequestBuilders.get("/publishers/"+ publisher_outofboundId.toString())
-        .contentType(MediaType.APPLICATION_JSON)
-        .accept(MediaType.APPLICATION_JSON))
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
         
         //.andDo(print())
         
@@ -95,8 +104,10 @@ public class PublisherControllerIntegrationTest extends DBUnitTest {
         Publisher publisher_last = snapshot.get(snapshot_lastIdx);
         
         wockMvc.perform(MockMvcRequestBuilders.get("/publishers")
-        .contentType(MediaType.APPLICATION_JSON)
-        .accept(MediaType.APPLICATION_JSON))
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
         
         //.andDo(print())
         
@@ -114,9 +125,11 @@ public class PublisherControllerIntegrationTest extends DBUnitTest {
         publisherRequest.setName("Test publisher name");
         
         wockMvc.perform(MockMvcRequestBuilders.post("/publishers")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(asJsonString(publisherRequest))
-        .accept(MediaType.APPLICATION_JSON))
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(publisherRequest))
+                .accept(MediaType.APPLICATION_JSON))
         
         //.andDo(print())
         
@@ -134,9 +147,11 @@ public class PublisherControllerIntegrationTest extends DBUnitTest {
         publisherRequest.setName(publisher.getName());
         
         wockMvc.perform(MockMvcRequestBuilders.post("/publishers")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(asJsonString(publisherRequest))
-        .accept(MediaType.APPLICATION_JSON))
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(publisherRequest))
+                .accept(MediaType.APPLICATION_JSON))
         
         //.andDo(print())
         
@@ -152,8 +167,10 @@ public class PublisherControllerIntegrationTest extends DBUnitTest {
         Long publisher_id = publisher.getId();
         
         wockMvc.perform(MockMvcRequestBuilders.delete("/publishers/"+ publisher_id.toString())
-        .contentType(MediaType.APPLICATION_JSON)
-        .accept(MediaType.APPLICATION_JSON))
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
         
         //.andDo(print())
         
@@ -168,8 +185,10 @@ public class PublisherControllerIntegrationTest extends DBUnitTest {
         Long publisher_outofboundId = publisher.getId() + 1;
 
         wockMvc.perform(MockMvcRequestBuilders.delete("/publishers/"+ publisher_outofboundId.toString())
-        .contentType(MediaType.APPLICATION_JSON)
-        .accept(MediaType.APPLICATION_JSON))
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
         
         //.andDo(print())
         
@@ -188,9 +207,11 @@ public class PublisherControllerIntegrationTest extends DBUnitTest {
         publisherRequest.setName("Modified name");
         
         wockMvc.perform(MockMvcRequestBuilders.put("/publishers/" + publisher_id.toString())
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(asJsonString(publisherRequest))
-        .accept(MediaType.APPLICATION_JSON))
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(publisherRequest))
+                .accept(MediaType.APPLICATION_JSON))
         
         //.andDo(print())
         
@@ -209,9 +230,11 @@ public class PublisherControllerIntegrationTest extends DBUnitTest {
         publisherRequest.setName(publisher.getName());
         
         wockMvc.perform(MockMvcRequestBuilders.put("/publishers/" + publisher_outofboundId.toString())
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(asJsonString(publisherRequest))
-        .accept(MediaType.APPLICATION_JSON))
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(publisherRequest))
+                .accept(MediaType.APPLICATION_JSON))
         
         //.andDo(print())
         
