@@ -1,5 +1,6 @@
 package org.niolikon.springbooklibrary.author;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -17,6 +18,7 @@ import org.niolikon.springbooklibrary.commons.DBUnitTest;
 import org.niolikon.springbooklibrary.system.exceptions.EntityDuplicationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -33,6 +35,9 @@ public class AuthorControllerIntegrationTest extends DBUnitTest {
     
     @Autowired
     private MockMvc wockMvc;
+
+    private final String ADMIN_USERNAME   = "admin";
+    private final String ADMIN_PASSWORD   = "admin";
     
     private List<Author> fetchSnapshot() throws DataSetException {
         List<Author> authorList = new ArrayList<>();
@@ -60,8 +65,10 @@ public class AuthorControllerIntegrationTest extends DBUnitTest {
         Long author_id = author.getId();
         
         wockMvc.perform(MockMvcRequestBuilders.get("/authors/"+ author_id.toString())
-        .contentType(MediaType.APPLICATION_JSON)
-        .accept(MediaType.APPLICATION_JSON))
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
         
         //.andDo(print())
         
@@ -79,8 +86,10 @@ public class AuthorControllerIntegrationTest extends DBUnitTest {
         Long author_outofboundId = author.getId() + 1;
 
         wockMvc.perform(MockMvcRequestBuilders.get("/authors/"+ author_outofboundId.toString())
-        .contentType(MediaType.APPLICATION_JSON)
-        .accept(MediaType.APPLICATION_JSON))
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
         
         //.andDo(print())
         
@@ -97,8 +106,10 @@ public class AuthorControllerIntegrationTest extends DBUnitTest {
         Author author_last = snapshot.get(snapshot_lastIdx);
         
         wockMvc.perform(MockMvcRequestBuilders.get("/authors")
-        .contentType(MediaType.APPLICATION_JSON)
-        .accept(MediaType.APPLICATION_JSON))
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
         
         //.andDo(print())
         
@@ -119,9 +130,11 @@ public class AuthorControllerIntegrationTest extends DBUnitTest {
         authorRequest.setSurname("Test author surname");
         
         wockMvc.perform(MockMvcRequestBuilders.post("/authors")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(asJsonString(authorRequest))
-        .accept(MediaType.APPLICATION_JSON))
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(authorRequest))
+                .accept(MediaType.APPLICATION_JSON))
         
         //.andDo(print())
         
@@ -141,9 +154,11 @@ public class AuthorControllerIntegrationTest extends DBUnitTest {
         authorRequest.setSurname(author.getSurname());
         
         wockMvc.perform(MockMvcRequestBuilders.post("/authors")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(asJsonString(authorRequest))
-        .accept(MediaType.APPLICATION_JSON))
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(authorRequest))
+                .accept(MediaType.APPLICATION_JSON))
         
         //.andDo(print())
         
@@ -159,8 +174,10 @@ public class AuthorControllerIntegrationTest extends DBUnitTest {
         Long author_id = author.getId();
         
         wockMvc.perform(MockMvcRequestBuilders.delete("/authors/"+ author_id.toString())
-        .contentType(MediaType.APPLICATION_JSON)
-        .accept(MediaType.APPLICATION_JSON))
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
         
         //.andDo(print())
         
@@ -175,8 +192,10 @@ public class AuthorControllerIntegrationTest extends DBUnitTest {
         Long author_outofboundId = author.getId() + 1;
 
         wockMvc.perform(MockMvcRequestBuilders.delete("/authors/"+ author_outofboundId.toString())
-        .contentType(MediaType.APPLICATION_JSON)
-        .accept(MediaType.APPLICATION_JSON))
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
         
         //.andDo(print())
         
@@ -196,9 +215,11 @@ public class AuthorControllerIntegrationTest extends DBUnitTest {
         authorRequest.setSurname("Modified surname");
         
         wockMvc.perform(MockMvcRequestBuilders.put("/authors/" + author_id.toString())
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(asJsonString(authorRequest))
-        .accept(MediaType.APPLICATION_JSON))
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(authorRequest))
+                .accept(MediaType.APPLICATION_JSON))
         
         //.andDo(print())
         
@@ -219,9 +240,11 @@ public class AuthorControllerIntegrationTest extends DBUnitTest {
         authorRequest.setSurname(author.getSurname());
         
         wockMvc.perform(MockMvcRequestBuilders.put("/authors/" + author_outofboundId.toString())
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(asJsonString(authorRequest))
-        .accept(MediaType.APPLICATION_JSON))
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(authorRequest))
+                .accept(MediaType.APPLICATION_JSON))
         
         //.andDo(print())
         

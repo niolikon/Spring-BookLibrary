@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dataset>
+    <role id="1" name="admin"/> 
+    <role id="2" name="user"/> 
+	
+    <enduser id="1" name="Admin" surname="Admin" username="admin" password="admin"/> 
+    <enduser id="2" name="Simone" surname="Muscas" username="simone" password="simone"/> 
+    
+    <enduserrole id="1" enduser_id="1" role_id="1"/>
+    <enduserrole id="2" enduser_id="1" role_id="2"/> 
+    <enduserrole id="3" enduser_id="2" role_id="2"/> 
+</dataset>
