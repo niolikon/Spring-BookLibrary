@@ -20,6 +20,7 @@ Project is created with:
 * DBUnit 2.5.4
 * Spring Test DBUnit 1.3.0
 * Jackson 2.11.1
+* Swagger 2.9.2
 
 
 ## Features

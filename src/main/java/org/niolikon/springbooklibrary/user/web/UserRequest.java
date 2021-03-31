@@ -5,6 +5,8 @@ import java.util.Set;
 
 import javax.validation.constraints.NotEmpty;
 
+import io.swagger.annotations.ApiModelProperty;
+
 public class UserRequest implements Serializable {
     
     private Long id;
@@ -20,7 +22,8 @@ public class UserRequest implements Serializable {
 
     @NotEmpty
     private String password;
-    
+
+    @ApiModelProperty(notes = "The allowed roles are 'admin' and 'user'")
     private Set<String> roles = Set.of();
 
     public Long getId() {
