@@ -69,6 +69,13 @@
             <artifactId>flyway-core</artifactId>
         </dependency>
 	    
+	    <!-- Utilities -->
+	    <dependency>
+	    	<groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+	    </dependency>
+	    
     	<!-- Testing -->
 	    <dependency>
 	    	<groupId>com.github.springtestdbunit</groupId>
