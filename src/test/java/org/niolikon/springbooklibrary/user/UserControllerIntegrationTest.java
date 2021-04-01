@@ -46,8 +46,8 @@ public class UserControllerIntegrationTest extends DBUnitTest {
     @Autowired
     private MockMvc mockMvc;
 
-    private final String ADMIN_USERNAME   = "admin";
-    private final String ADMIN_PASSWORD   = "admin";
+    private final String ADMIN_USERNAME = "admin";
+    private final String ADMIN_PASSWORD = "admin";
     
     private List<User> fetchSnapshot() throws DataSetException {
         List<User> userList = new ArrayList<>();
