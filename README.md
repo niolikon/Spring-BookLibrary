@@ -21,12 +21,13 @@ Project is created with:
 * Spring Test DBUnit 1.3.0
 * Jackson 2.11.1
 * Swagger 2.9.2
+* Lombok 1.18.18
 
 
 ## Features
 - [x] Book management
-- [x] User management
-- [ ] User access restrictions based on roles
+- [x] User management and authentication
+- [ ] User authorization
 - [ ] Reservation management
 
 
@@ -41,6 +42,11 @@ cd Spring-BookLibrary
 java -jar target/*.jar
 ```
 
+## Documentation
+The exported RESTFul APIs are documented using [Swagger framework](https://swagger.io/), you can access the provided documentation by running Spring-BookLibrary and opening [Swing UI](http://localhost:8080/springbooklibrary/swagger-ui.html) on your browser.
+
+<img src="Spring-BootLibrary_Swagger-Capture.jpg">
+
 ## Test
 This project provides a [sample dashboard](Spring-BootLibrary_Insomnia-Dashboard.json) for [Insomnia REST Client](https://insomnia.rest/)
 with some pre-configured REST requests.
@@ -49,4 +55,4 @@ with some pre-configured REST requests.
 
 # License
 
-The Spring PetClinic sample application is released under [MIT License](LICENSE).
+The Spring-BookLibrary (Case Study) application is released under [MIT License](LICENSE).
