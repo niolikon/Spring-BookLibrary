@@ -4,6 +4,11 @@ import java.io.Serializable;
 
 import javax.validation.constraints.NotEmpty;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor
+@Data
 public class AuthorRequest implements Serializable {
     
     /** Serial Version ID */
@@ -15,20 +20,4 @@ public class AuthorRequest implements Serializable {
     @NotEmpty
     private String surname;
     
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getSurname() {
-        return surname;
-    }
-
-    public void setSurname(String surname) {
-        this.surname = surname;
-    }
 }
