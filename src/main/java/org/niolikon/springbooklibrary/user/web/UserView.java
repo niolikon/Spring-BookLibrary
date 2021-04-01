@@ -13,6 +13,8 @@ import javax.persistence.ManyToMany;
 import org.niolikon.springbooklibrary.user.Role;
 import org.niolikon.springbooklibrary.user.User;
 
+import io.swagger.annotations.ApiModelProperty;
+
 public class UserView {
     
     private Long id;
@@ -24,7 +26,8 @@ public class UserView {
     private String username;
     
     private String password;
-    
+
+    @ApiModelProperty(notes = "The roles can be 'admin' and 'user'")
     private Set<String> roles = Set.of();
 
     public Long getId() {
