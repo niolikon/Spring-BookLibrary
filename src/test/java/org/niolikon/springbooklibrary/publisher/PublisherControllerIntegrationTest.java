@@ -34,10 +34,13 @@ import com.github.springtestdbunit.annotation.DatabaseSetup;
 public class PublisherControllerIntegrationTest extends DBUnitTest {
     
     @Autowired
-    private MockMvc wockMvc;
+    private MockMvc mockMvc;
 
-    private final String ADMIN_USERNAME   = "admin";
-    private final String ADMIN_PASSWORD   = "admin";
+    private final String ADMIN_USERNAME     = "admin";
+    private final String ADMIN_PASSWORD     = "admin";
+
+    private final String USER_USERNAME      = "user";
+    private final String USER_PASSWORD      = "user";
     
     private List<Publisher> fetchSnapshot() throws DataSetException {
         List<Publisher> publisherList = new ArrayList<>();
@@ -58,12 +61,12 @@ public class PublisherControllerIntegrationTest extends DBUnitTest {
 
     @Test
     @DatabaseSetup(value = "/dataset-publishers.xml", type = DatabaseOperation.CLEAN_INSERT)
-    public void get_ExistentIdGiven_ShouldReturnPublisher() throws Exception {
+    public void get_ExistentIdGiven_AdminAuth_ShouldReturnPublisher() throws Exception {
         List<Publisher> snapshot = this.fetchSnapshot();
         Publisher publisher = snapshot.get(0);
         Long publisher_id = publisher.getId();
         
-        wockMvc.perform(MockMvcRequestBuilders.get("/publishers/"+ publisher_id.toString())
+        mockMvc.perform(MockMvcRequestBuilders.get("/publishers/"+ publisher_id.toString())
                 .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
                 .with(csrf().asHeader())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -78,12 +81,49 @@ public class PublisherControllerIntegrationTest extends DBUnitTest {
 
     @Test
     @DatabaseSetup(value = "/dataset-publishers.xml", type = DatabaseOperation.CLEAN_INSERT)
-    public void get_NonExistentIdGiven_ShouldReturnError() throws Exception {
+    public void get_ExistentIdGiven_UserAuth_ShouldReturnPublisher() throws Exception {
+        List<Publisher> snapshot = this.fetchSnapshot();
+        Publisher publisher = snapshot.get(0);
+        Long publisher_id = publisher.getId();
+        
+        mockMvc.perform(MockMvcRequestBuilders.get("/publishers/"+ publisher_id.toString())
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(USER_USERNAME, USER_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        
+        //.andDo(print())
+        
+        .andExpect(status().isOk())
+        .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(publisher.getId()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.name").value(publisher.getName()));
+    }
+
+    @Test
+    @DatabaseSetup(value = "/dataset-publishers.xml", type = DatabaseOperation.CLEAN_INSERT)
+    public void get_ExistentIdGiven_NoAuth_ShouldReturnError() throws Exception {
+        List<Publisher> snapshot = this.fetchSnapshot();
+        Publisher publisher = snapshot.get(0);
+        Long publisher_id = publisher.getId();
+        
+        mockMvc.perform(MockMvcRequestBuilders.get("/publishers/"+ publisher_id.toString())
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        
+        //.andDo(print())
+        
+        .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DatabaseSetup(value = "/dataset-publishers.xml", type = DatabaseOperation.CLEAN_INSERT)
+    public void get_NonExistentIdGiven_AdminAuth_ShouldReturnError() throws Exception {
         List<Publisher> snapshot = this.fetchSnapshot();
         Publisher publisher = snapshot.get(snapshot.size() - 1);
         Long publisher_outofboundId = publisher.getId() + 1;
 
-        wockMvc.perform(MockMvcRequestBuilders.get("/publishers/"+ publisher_outofboundId.toString())
+        mockMvc.perform(MockMvcRequestBuilders.get("/publishers/"+ publisher_outofboundId.toString())
                 .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
                 .with(csrf().asHeader())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -97,13 +137,13 @@ public class PublisherControllerIntegrationTest extends DBUnitTest {
     
     @Test
     @DatabaseSetup(value = "/dataset-publishers.xml", type = DatabaseOperation.CLEAN_INSERT)
-    public void getAll_ExistentIdGiven_ShouldReturnAll() throws Exception {
+    public void getAll_AdminAuth_ShouldReturnAll() throws Exception {
         List<Publisher> snapshot = this.fetchSnapshot();
         Integer snapshot_lastIdx = snapshot.size() - 1;
         Publisher publisher_first = snapshot.get(0);
         Publisher publisher_last = snapshot.get(snapshot_lastIdx);
         
-        wockMvc.perform(MockMvcRequestBuilders.get("/publishers")
+        mockMvc.perform(MockMvcRequestBuilders.get("/publishers")
                 .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
                 .with(csrf().asHeader())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -117,14 +157,50 @@ public class PublisherControllerIntegrationTest extends DBUnitTest {
         .andExpect(MockMvcResultMatchers.jsonPath("$.content["+snapshot_lastIdx+"].id").value(publisher_last.getId().toString()))
         .andExpect(MockMvcResultMatchers.jsonPath("$.content["+snapshot_lastIdx+"].name").value(publisher_last.getName()));
     }
+    
+    @Test
+    @DatabaseSetup(value = "/dataset-publishers.xml", type = DatabaseOperation.CLEAN_INSERT)
+    public void getAll_UserAuth_ShouldReturnAll() throws Exception {
+        List<Publisher> snapshot = this.fetchSnapshot();
+        Integer snapshot_lastIdx = snapshot.size() - 1;
+        Publisher publisher_first = snapshot.get(0);
+        Publisher publisher_last = snapshot.get(snapshot_lastIdx);
+        
+        mockMvc.perform(MockMvcRequestBuilders.get("/publishers")
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        
+        //.andDo(print())
+        
+        .andExpect(status().isOk())
+        .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].id").value(publisher_first.getId().toString()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].name").value(publisher_first.getName()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.content["+snapshot_lastIdx+"].id").value(publisher_last.getId().toString()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.content["+snapshot_lastIdx+"].name").value(publisher_last.getName()));
+    }
+    
+    @Test
+    @DatabaseSetup(value = "/dataset-publishers.xml", type = DatabaseOperation.CLEAN_INSERT)
+    public void getAll_NoAuth_ShouldReturnError() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get("/publishers")
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        
+        //.andDo(print())
+        
+        .andExpect(status().isUnauthorized());
+    }
 
     @Test
     @DatabaseSetup(value = "/dataset-publishers.xml", type = DatabaseOperation.CLEAN_INSERT)
-    public void post_NewPublisherGiven_ShouldCreatePublisher() throws Exception {
+    public void post_NewPublisherGiven_AdminAuth_ShouldCreatePublisher() throws Exception {
         PublisherRequest publisherRequest = new PublisherRequest();
         publisherRequest.setName("Test publisher name");
         
-        wockMvc.perform(MockMvcRequestBuilders.post("/publishers")
+        mockMvc.perform(MockMvcRequestBuilders.post("/publishers")
                 .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
                 .with(csrf().asHeader())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -137,16 +213,51 @@ public class PublisherControllerIntegrationTest extends DBUnitTest {
         .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNotEmpty())
         .andExpect(MockMvcResultMatchers.jsonPath("$.name").value(publisherRequest.getName()));
     }
+
+    @Test
+    @DatabaseSetup(value = "/dataset-publishers.xml", type = DatabaseOperation.CLEAN_INSERT)
+    public void post_NewPublisherGiven_UserAuth_ShouldReturnError() throws Exception {
+        PublisherRequest publisherRequest = new PublisherRequest();
+        publisherRequest.setName("Test publisher name");
+        
+        mockMvc.perform(MockMvcRequestBuilders.post("/publishers")
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(USER_USERNAME, USER_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(publisherRequest))
+                .accept(MediaType.APPLICATION_JSON))
+        
+        //.andDo(print())
+        
+        .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DatabaseSetup(value = "/dataset-publishers.xml", type = DatabaseOperation.CLEAN_INSERT)
+    public void post_NewPublisherGiven_NoAuth_ShouldReturnError() throws Exception {
+        PublisherRequest publisherRequest = new PublisherRequest();
+        publisherRequest.setName("Test publisher name");
+        
+        mockMvc.perform(MockMvcRequestBuilders.post("/publishers")
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(publisherRequest))
+                .accept(MediaType.APPLICATION_JSON))
+        
+        //.andDo(print())
+        
+        .andExpect(status().isUnauthorized());
+    }
     
     @Test
     @DatabaseSetup(value = "/dataset-publishers.xml", type = DatabaseOperation.CLEAN_INSERT)
-    public void post_ExistentPublisherGiven_ShouldReturnError() throws Exception {
+    public void post_ExistentPublisherGiven_AdminAuth_ShouldReturnError() throws Exception {
         List<Publisher> snapshot = this.fetchSnapshot();
         Publisher publisher = snapshot.get(0);
         PublisherRequest publisherRequest = new PublisherRequest();
         publisherRequest.setName(publisher.getName());
         
-        wockMvc.perform(MockMvcRequestBuilders.post("/publishers")
+        mockMvc.perform(MockMvcRequestBuilders.post("/publishers")
                 .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
                 .with(csrf().asHeader())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -161,12 +272,12 @@ public class PublisherControllerIntegrationTest extends DBUnitTest {
 
     @Test
     @DatabaseSetup(value = "/dataset-publishers.xml", type = DatabaseOperation.CLEAN_INSERT)
-    public void delete_ExistentIdGiven_ShouldReturnPublisher() throws Exception {
+    public void delete_ExistentIdGiven_AdminAuth_ShouldDeletePublisher() throws Exception {
         List<Publisher> snapshot = this.fetchSnapshot();
         Publisher publisher = snapshot.get(0);
         Long publisher_id = publisher.getId();
         
-        wockMvc.perform(MockMvcRequestBuilders.delete("/publishers/"+ publisher_id.toString())
+        mockMvc.perform(MockMvcRequestBuilders.delete("/publishers/"+ publisher_id.toString())
                 .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
                 .with(csrf().asHeader())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -179,12 +290,47 @@ public class PublisherControllerIntegrationTest extends DBUnitTest {
 
     @Test
     @DatabaseSetup(value = "/dataset-publishers.xml", type = DatabaseOperation.CLEAN_INSERT)
+    public void delete_ExistentIdGiven_UserAuth_ShouldReturnError() throws Exception {
+        List<Publisher> snapshot = this.fetchSnapshot();
+        Publisher publisher = snapshot.get(0);
+        Long publisher_id = publisher.getId();
+        
+        mockMvc.perform(MockMvcRequestBuilders.delete("/publishers/"+ publisher_id.toString())
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(USER_USERNAME, USER_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        
+        //.andDo(print())
+        
+        .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DatabaseSetup(value = "/dataset-publishers.xml", type = DatabaseOperation.CLEAN_INSERT)
+    public void delete_ExistentIdGiven_NoAuth_ShouldReturnError() throws Exception {
+        List<Publisher> snapshot = this.fetchSnapshot();
+        Publisher publisher = snapshot.get(0);
+        Long publisher_id = publisher.getId();
+        
+        mockMvc.perform(MockMvcRequestBuilders.delete("/publishers/"+ publisher_id.toString())
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        
+        //.andDo(print())
+        
+        .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DatabaseSetup(value = "/dataset-publishers.xml", type = DatabaseOperation.CLEAN_INSERT)
     public void delete_NonExistentIdGiven_ShouldReturnError() throws Exception {
         List<Publisher> snapshot = this.fetchSnapshot();
         Publisher publisher = snapshot.get(snapshot.size() - 1);
         Long publisher_outofboundId = publisher.getId() + 1;
 
-        wockMvc.perform(MockMvcRequestBuilders.delete("/publishers/"+ publisher_outofboundId.toString())
+        mockMvc.perform(MockMvcRequestBuilders.delete("/publishers/"+ publisher_outofboundId.toString())
                 .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
                 .with(csrf().asHeader())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -199,14 +345,14 @@ public class PublisherControllerIntegrationTest extends DBUnitTest {
 
     @Test
     @DatabaseSetup(value = "/dataset-publishers.xml", type = DatabaseOperation.CLEAN_INSERT)
-    public void put_ExistentPublisherGiven_ShouldModifyPublisher() throws Exception {
+    public void put_ExistentPublisherGiven_AdminAuth_ShouldModifyPublisher() throws Exception {
         List<Publisher> snapshot = this.fetchSnapshot();
         Publisher publisher = snapshot.get(0);
         Long publisher_id = publisher.getId();
         PublisherRequest publisherRequest = new PublisherRequest();
         publisherRequest.setName("Modified name");
         
-        wockMvc.perform(MockMvcRequestBuilders.put("/publishers/" + publisher_id.toString())
+        mockMvc.perform(MockMvcRequestBuilders.put("/publishers/" + publisher_id.toString())
                 .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
                 .with(csrf().asHeader())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -219,17 +365,58 @@ public class PublisherControllerIntegrationTest extends DBUnitTest {
         .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(publisher_id))
         .andExpect(MockMvcResultMatchers.jsonPath("$.name").value(publisherRequest.getName()));
     }
+
+    @Test
+    @DatabaseSetup(value = "/dataset-publishers.xml", type = DatabaseOperation.CLEAN_INSERT)
+    public void put_ExistentPublisherGiven_UserAuth_ShouldReturnError() throws Exception {
+        List<Publisher> snapshot = this.fetchSnapshot();
+        Publisher publisher = snapshot.get(0);
+        Long publisher_id = publisher.getId();
+        PublisherRequest publisherRequest = new PublisherRequest();
+        publisherRequest.setName("Modified name");
+        
+        mockMvc.perform(MockMvcRequestBuilders.put("/publishers/" + publisher_id.toString())
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(USER_USERNAME, USER_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(publisherRequest))
+                .accept(MediaType.APPLICATION_JSON))
+        
+        //.andDo(print())
+        
+        .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DatabaseSetup(value = "/dataset-publishers.xml", type = DatabaseOperation.CLEAN_INSERT)
+    public void put_ExistentPublisherGiven_NoAuth_ShouldReturnError() throws Exception {
+        List<Publisher> snapshot = this.fetchSnapshot();
+        Publisher publisher = snapshot.get(0);
+        Long publisher_id = publisher.getId();
+        PublisherRequest publisherRequest = new PublisherRequest();
+        publisherRequest.setName("Modified name");
+        
+        mockMvc.perform(MockMvcRequestBuilders.put("/publishers/" + publisher_id.toString())
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(publisherRequest))
+                .accept(MediaType.APPLICATION_JSON))
+        
+        //.andDo(print())
+        
+        .andExpect(status().isUnauthorized());
+    }
     
     @Test
     @DatabaseSetup(value = "/dataset-publishers.xml", type = DatabaseOperation.CLEAN_INSERT)
-    public void put_NonExistentPublisherGiven_ShouldReturnError() throws Exception {
+    public void put_NonExistentPublisherGiven_AdminAuth_ShouldReturnError() throws Exception {
         List<Publisher> snapshot = this.fetchSnapshot();
         Publisher publisher = snapshot.get(snapshot.size() - 1);
         Long publisher_outofboundId = publisher.getId() + 1L;
         PublisherRequest publisherRequest = new PublisherRequest();
         publisherRequest.setName(publisher.getName());
         
-        wockMvc.perform(MockMvcRequestBuilders.put("/publishers/" + publisher_outofboundId.toString())
+        mockMvc.perform(MockMvcRequestBuilders.put("/publishers/" + publisher_outofboundId.toString())
                 .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
                 .with(csrf().asHeader())
                 .contentType(MediaType.APPLICATION_JSON)
