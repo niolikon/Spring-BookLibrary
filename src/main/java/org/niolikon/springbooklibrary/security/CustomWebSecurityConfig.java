@@ -57,10 +57,10 @@ public class CustomWebSecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers(HttpMethod.GET, "/books").hasAuthority("ROLE_USER")
             .antMatchers("/books").hasAuthority("ROLE_ADMIN")
 
-            .antMatchers(HttpMethod.GET, "/publisher/**").hasAuthority("ROLE_USER")
-            .antMatchers("/publisher/**").hasAuthority("ROLE_ADMIN")
-            .antMatchers(HttpMethod.GET, "/publisher").hasAuthority("ROLE_USER")
-            .antMatchers("/publisher").hasAuthority("ROLE_ADMIN")
+            .antMatchers(HttpMethod.GET, "/publishers/**").hasAuthority("ROLE_USER")
+            .antMatchers("/publishers/**").hasAuthority("ROLE_ADMIN")
+            .antMatchers(HttpMethod.GET, "/publishers").hasAuthority("ROLE_USER")
+            .antMatchers("/publishers").hasAuthority("ROLE_ADMIN")
 
             .antMatchers(HttpMethod.GET, "/users/**").hasAuthority("ROLE_USER")
             .antMatchers(HttpMethod.PUT, "/users/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")

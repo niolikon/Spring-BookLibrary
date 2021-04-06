@@ -158,8 +158,11 @@ public class UserController {
             Set<String> currentRoles = user.getRoles().stream().map(Role::getName).collect(Collectors.toSet());
             String currentUsername = user.getUsername();
             
-            req.setRoles(currentRoles);
-            req.setUsername(currentUsername);
+            if (! currentUsername.equals(req.getUsername()))
+                throw new OperationNotAcceptableException(messageProvider.getMessage("user.CannotChangeUsername"));
+            
+            if (! currentRoles.containsAll(req.getRoles()))
+                throw new OperationNotAcceptableException(messageProvider.getMessage("user.CannotChangeRoles"));
         }
         
         String encodedPassword = passwordEncoder.encode(req.getPassword());
