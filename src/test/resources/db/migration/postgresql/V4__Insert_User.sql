@@ -16,11 +16,11 @@ VALUES
 
 INSERT INTO enduser (id, name, surname, username, password) 
 VALUES 
-(1, 'Admin', 'Admin', 'admin', 'admin');
+(1, 'Admin', 'Admin', 'admin', '$2y$10$1zyH1wPffdquP5Cr0bo9Uem7j9odP1Ur5lRYTp/ty8mPbxfzOlWUa');
 
 INSERT INTO enduser (id, name, surname, username, password) 
 VALUES 
-(2, 'Simone', 'Muscas', 'simone', 'simone');
+(2, 'Simone', 'Muscas', 'simone', '$2y$10$kF9QRWleVe.ylCGnDkKtTOLHUOCyKuMXcUToNh1PMdqsBiHk/Ioni');
 
 -- --------------------------------------------------------
 -- Data for table enduserrole

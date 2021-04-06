@@ -34,10 +34,13 @@ import com.github.springtestdbunit.annotation.DatabaseSetup;
 public class AuthorControllerIntegrationTest extends DBUnitTest {
     
     @Autowired
-    private MockMvc wockMvc;
+    private MockMvc mockMvc;
 
-    private final String ADMIN_USERNAME   = "admin";
-    private final String ADMIN_PASSWORD   = "admin";
+    private final String ADMIN_USERNAME     = "admin";
+    private final String ADMIN_PASSWORD     = "admin";
+
+    private final String USER_USERNAME      = "user";
+    private final String USER_PASSWORD      = "user";
     
     private List<Author> fetchSnapshot() throws DataSetException {
         List<Author> authorList = new ArrayList<>();
@@ -59,12 +62,12 @@ public class AuthorControllerIntegrationTest extends DBUnitTest {
 
     @Test
     @DatabaseSetup(value = "/dataset-authors.xml", type = DatabaseOperation.CLEAN_INSERT)
-    public void get_ExistentIdGiven_ShouldReturnAuthor() throws Exception {
+    public void get_ExistentIdGiven_AdminAuth_ShouldReturnAuthor() throws Exception {
         List<Author> snapshot = this.fetchSnapshot();
         Author author = snapshot.get(0);
         Long author_id = author.getId();
         
-        wockMvc.perform(MockMvcRequestBuilders.get("/authors/"+ author_id.toString())
+        mockMvc.perform(MockMvcRequestBuilders.get("/authors/"+ author_id.toString())
                 .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
                 .with(csrf().asHeader())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -80,12 +83,50 @@ public class AuthorControllerIntegrationTest extends DBUnitTest {
 
     @Test
     @DatabaseSetup(value = "/dataset-authors.xml", type = DatabaseOperation.CLEAN_INSERT)
-    public void get_NonExistentIdGiven_ShouldReturnError() throws Exception {
+    public void get_ExistentIdGiven_UserAuth_ShouldReturnAuthor() throws Exception {
+        List<Author> snapshot = this.fetchSnapshot();
+        Author author = snapshot.get(0);
+        Long author_id = author.getId();
+        
+        mockMvc.perform(MockMvcRequestBuilders.get("/authors/"+ author_id.toString())
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(USER_USERNAME, USER_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        
+        //.andDo(print())
+        
+        .andExpect(status().isOk())
+        .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(author.getId()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.name").value(author.getName()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.surname").value(author.getSurname()));
+    }
+
+    @Test
+    @DatabaseSetup(value = "/dataset-authors.xml", type = DatabaseOperation.CLEAN_INSERT)
+    public void get_ExistentIdGiven_NoAuth_ShouldReturnError() throws Exception {
+        List<Author> snapshot = this.fetchSnapshot();
+        Author author = snapshot.get(0);
+        Long author_id = author.getId();
+        
+        mockMvc.perform(MockMvcRequestBuilders.get("/authors/"+ author_id.toString())
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        
+        //.andDo(print())
+        
+        .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DatabaseSetup(value = "/dataset-authors.xml", type = DatabaseOperation.CLEAN_INSERT)
+    public void get_NonExistentIdGiven_AdminAuth_ShouldReturnError() throws Exception {
         List<Author> snapshot = this.fetchSnapshot();
         Author author = snapshot.get(snapshot.size() - 1);
         Long author_outofboundId = author.getId() + 1;
 
-        wockMvc.perform(MockMvcRequestBuilders.get("/authors/"+ author_outofboundId.toString())
+        mockMvc.perform(MockMvcRequestBuilders.get("/authors/"+ author_outofboundId.toString())
                 .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
                 .with(csrf().asHeader())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -99,13 +140,13 @@ public class AuthorControllerIntegrationTest extends DBUnitTest {
     
     @Test
     @DatabaseSetup(value = "/dataset-authors.xml", type = DatabaseOperation.CLEAN_INSERT)
-    public void getAll_ExistentIdGiven_ShouldReturnAll() throws Exception {
+    public void getAll_AdminAuth_ShouldReturnAll() throws Exception {
         List<Author> snapshot = this.fetchSnapshot();
         Integer snapshot_lastIdx = snapshot.size() - 1;
         Author author_first = snapshot.get(0);
         Author author_last = snapshot.get(snapshot_lastIdx);
         
-        wockMvc.perform(MockMvcRequestBuilders.get("/authors")
+        mockMvc.perform(MockMvcRequestBuilders.get("/authors")
                 .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
                 .with(csrf().asHeader())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -121,15 +162,53 @@ public class AuthorControllerIntegrationTest extends DBUnitTest {
         .andExpect(MockMvcResultMatchers.jsonPath("$.content["+snapshot_lastIdx+"].name").value(author_last.getName()))
         .andExpect(MockMvcResultMatchers.jsonPath("$.content["+snapshot_lastIdx+"].surname").value(author_last.getSurname()));
     }
+    
+    @Test
+    @DatabaseSetup(value = "/dataset-authors.xml", type = DatabaseOperation.CLEAN_INSERT)
+    public void getAll_UserAuth_ShouldReturnAll() throws Exception {
+        List<Author> snapshot = this.fetchSnapshot();
+        Integer snapshot_lastIdx = snapshot.size() - 1;
+        Author author_first = snapshot.get(0);
+        Author author_last = snapshot.get(snapshot_lastIdx);
+        
+        mockMvc.perform(MockMvcRequestBuilders.get("/authors")
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        
+        //.andDo(print())
+        
+        .andExpect(status().isOk())
+        .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].id").value(author_first.getId().toString()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].name").value(author_first.getName()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].surname").value(author_first.getSurname()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.content["+snapshot_lastIdx+"].id").value(author_last.getId().toString()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.content["+snapshot_lastIdx+"].name").value(author_last.getName()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.content["+snapshot_lastIdx+"].surname").value(author_last.getSurname()));
+    }
+    
+    @Test
+    @DatabaseSetup(value = "/dataset-authors.xml", type = DatabaseOperation.CLEAN_INSERT)
+    public void getAll_NoAuth_ShouldReturnError() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get("/authors")
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        
+        //.andDo(print())
+        
+        .andExpect(status().isUnauthorized());
+    }
 
     @Test
     @DatabaseSetup(value = "/dataset-authors.xml", type = DatabaseOperation.CLEAN_INSERT)
-    public void post_NewAuthorGiven_ShouldCreateAuthor() throws Exception {
+    public void post_NewAuthorGiven_AdminAuth_ShouldCreateAuthor() throws Exception {
         AuthorRequest authorRequest = new AuthorRequest();
         authorRequest.setName("Test author name");
         authorRequest.setSurname("Test author surname");
         
-        wockMvc.perform(MockMvcRequestBuilders.post("/authors")
+        mockMvc.perform(MockMvcRequestBuilders.post("/authors")
                 .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
                 .with(csrf().asHeader())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -143,17 +222,54 @@ public class AuthorControllerIntegrationTest extends DBUnitTest {
         .andExpect(MockMvcResultMatchers.jsonPath("$.name").value(authorRequest.getName()))
         .andExpect(MockMvcResultMatchers.jsonPath("$.surname").value(authorRequest.getSurname()));
     }
+
+    @Test
+    @DatabaseSetup(value = "/dataset-authors.xml", type = DatabaseOperation.CLEAN_INSERT)
+    public void post_NewAuthorGiven_UserAuth_ShouldReturnError() throws Exception {
+        AuthorRequest authorRequest = new AuthorRequest();
+        authorRequest.setName("Test author name");
+        authorRequest.setSurname("Test author surname");
+        
+        mockMvc.perform(MockMvcRequestBuilders.post("/authors")
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(USER_USERNAME, USER_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(authorRequest))
+                .accept(MediaType.APPLICATION_JSON))
+        
+        //.andDo(print())
+        
+        .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DatabaseSetup(value = "/dataset-authors.xml", type = DatabaseOperation.CLEAN_INSERT)
+    public void post_NewAuthorGiven_NoAuth_ShouldReturnError() throws Exception {
+        AuthorRequest authorRequest = new AuthorRequest();
+        authorRequest.setName("Test author name");
+        authorRequest.setSurname("Test author surname");
+        
+        mockMvc.perform(MockMvcRequestBuilders.post("/authors")
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(authorRequest))
+                .accept(MediaType.APPLICATION_JSON))
+        
+        //.andDo(print())
+        
+        .andExpect(status().isUnauthorized());
+    }
     
     @Test
     @DatabaseSetup(value = "/dataset-authors.xml", type = DatabaseOperation.CLEAN_INSERT)
-    public void post_ExistentAuthorGiven_ShouldReturnError() throws Exception {
+    public void post_ExistentAuthorGiven_AdminAuth_ShouldReturnError() throws Exception {
         List<Author> snapshot = this.fetchSnapshot();
         Author author = snapshot.get(0);
         AuthorRequest authorRequest = new AuthorRequest();
         authorRequest.setName(author.getName());
         authorRequest.setSurname(author.getSurname());
         
-        wockMvc.perform(MockMvcRequestBuilders.post("/authors")
+        mockMvc.perform(MockMvcRequestBuilders.post("/authors")
                 .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
                 .with(csrf().asHeader())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -168,12 +284,12 @@ public class AuthorControllerIntegrationTest extends DBUnitTest {
 
     @Test
     @DatabaseSetup(value = "/dataset-authors.xml", type = DatabaseOperation.CLEAN_INSERT)
-    public void delete_ExistentIdGiven_ShouldReturnAuthor() throws Exception {
+    public void delete_ExistentIdGiven_AdminAuth_ShouldDeleteAuthor() throws Exception {
         List<Author> snapshot = this.fetchSnapshot();
         Author author = snapshot.get(0);
         Long author_id = author.getId();
         
-        wockMvc.perform(MockMvcRequestBuilders.delete("/authors/"+ author_id.toString())
+        mockMvc.perform(MockMvcRequestBuilders.delete("/authors/"+ author_id.toString())
                 .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
                 .with(csrf().asHeader())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -186,12 +302,47 @@ public class AuthorControllerIntegrationTest extends DBUnitTest {
 
     @Test
     @DatabaseSetup(value = "/dataset-authors.xml", type = DatabaseOperation.CLEAN_INSERT)
-    public void delete_NonExistentIdGiven_ShouldReturnError() throws Exception {
+    public void delete_ExistentIdGiven_UserAuth_ShouldReturnError() throws Exception {
+        List<Author> snapshot = this.fetchSnapshot();
+        Author author = snapshot.get(0);
+        Long author_id = author.getId();
+        
+        mockMvc.perform(MockMvcRequestBuilders.delete("/authors/"+ author_id.toString())
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(USER_USERNAME, USER_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        
+        //.andDo(print())
+        
+        .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DatabaseSetup(value = "/dataset-authors.xml", type = DatabaseOperation.CLEAN_INSERT)
+    public void delete_ExistentIdGiven_NoAuth_ShouldReturnError() throws Exception {
+        List<Author> snapshot = this.fetchSnapshot();
+        Author author = snapshot.get(0);
+        Long author_id = author.getId();
+        
+        mockMvc.perform(MockMvcRequestBuilders.delete("/authors/"+ author_id.toString())
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        
+        //.andDo(print())
+        
+        .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DatabaseSetup(value = "/dataset-authors.xml", type = DatabaseOperation.CLEAN_INSERT)
+    public void delete_NonExistentIdGiven_AdminAuth_ShouldReturnError() throws Exception {
         List<Author> snapshot = this.fetchSnapshot();
         Author author = snapshot.get(snapshot.size() - 1);
         Long author_outofboundId = author.getId() + 1;
 
-        wockMvc.perform(MockMvcRequestBuilders.delete("/authors/"+ author_outofboundId.toString())
+        mockMvc.perform(MockMvcRequestBuilders.delete("/authors/"+ author_outofboundId.toString())
                 .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
                 .with(csrf().asHeader())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -206,7 +357,7 @@ public class AuthorControllerIntegrationTest extends DBUnitTest {
 
     @Test
     @DatabaseSetup(value = "/dataset-authors.xml", type = DatabaseOperation.CLEAN_INSERT)
-    public void put_ExistentAuthorGiven_ShouldModifyAuthor() throws Exception {
+    public void put_ExistentAuthorGiven_AdminAuth_ShouldModifyAuthor() throws Exception {
         List<Author> snapshot = this.fetchSnapshot();
         Author author = snapshot.get(0);
         Long author_id = author.getId();
@@ -214,7 +365,7 @@ public class AuthorControllerIntegrationTest extends DBUnitTest {
         authorRequest.setName("Modified name");
         authorRequest.setSurname("Modified surname");
         
-        wockMvc.perform(MockMvcRequestBuilders.put("/authors/" + author_id.toString())
+        mockMvc.perform(MockMvcRequestBuilders.put("/authors/" + author_id.toString())
                 .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
                 .with(csrf().asHeader())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -231,7 +382,50 @@ public class AuthorControllerIntegrationTest extends DBUnitTest {
     
     @Test
     @DatabaseSetup(value = "/dataset-authors.xml", type = DatabaseOperation.CLEAN_INSERT)
-    public void put_NonExistentAuthorGiven_ShouldReturnError() throws Exception {
+    public void put_ExistentAuthorGiven_UserAuth_ShouldReturnError() throws Exception {
+        List<Author> snapshot = this.fetchSnapshot();
+        Author author = snapshot.get(0);
+        Long author_id = author.getId();
+        AuthorRequest authorRequest = new AuthorRequest();
+        authorRequest.setName("Modified name");
+        authorRequest.setSurname("Modified surname");
+        
+        mockMvc.perform(MockMvcRequestBuilders.put("/authors/" + author_id.toString())
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(USER_USERNAME, USER_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(authorRequest))
+                .accept(MediaType.APPLICATION_JSON))
+        
+        //.andDo(print())
+        
+        .andExpect(status().isForbidden());
+    }
+    
+    @Test
+    @DatabaseSetup(value = "/dataset-authors.xml", type = DatabaseOperation.CLEAN_INSERT)
+    public void put_ExistentAuthorGiven_NoAuth_ShouldReturnError() throws Exception {
+        List<Author> snapshot = this.fetchSnapshot();
+        Author author = snapshot.get(0);
+        Long author_id = author.getId();
+        AuthorRequest authorRequest = new AuthorRequest();
+        authorRequest.setName("Modified name");
+        authorRequest.setSurname("Modified surname");
+        
+        mockMvc.perform(MockMvcRequestBuilders.put("/authors/" + author_id.toString())
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(authorRequest))
+                .accept(MediaType.APPLICATION_JSON))
+        
+        //.andDo(print())
+        
+        .andExpect(status().isUnauthorized());
+    }
+    
+    @Test
+    @DatabaseSetup(value = "/dataset-authors.xml", type = DatabaseOperation.CLEAN_INSERT)
+    public void put_NonExistentAuthorGiven_AdminAuth_ShouldReturnError() throws Exception {
         List<Author> snapshot = this.fetchSnapshot();
         Author author = snapshot.get(snapshot.size() - 1);
         Long author_outofboundId = author.getId() + 1L;
@@ -239,7 +433,7 @@ public class AuthorControllerIntegrationTest extends DBUnitTest {
         authorRequest.setName(author.getName());
         authorRequest.setSurname(author.getSurname());
         
-        wockMvc.perform(MockMvcRequestBuilders.put("/authors/" + author_outofboundId.toString())
+        mockMvc.perform(MockMvcRequestBuilders.put("/authors/" + author_outofboundId.toString())
                 .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
                 .with(csrf().asHeader())
                 .contentType(MediaType.APPLICATION_JSON)

@@ -13,6 +13,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import org.niolikon.springbooklibrary.system.exceptions.EntityNotFoundException;
 import org.niolikon.springbooklibrary.system.exceptions.EntityNotProcessableException;
+import org.niolikon.springbooklibrary.system.exceptions.OperationNotAcceptableException;
 import org.niolikon.springbooklibrary.system.exceptions.EntityDuplicationException;
 import org.niolikon.springbooklibrary.system.web.ApiErrorResponse;
 
@@ -32,6 +33,11 @@ public class BooklibraryExceptionHandler extends ResponseEntityExceptionHandler 
     @ExceptionHandler({EntityNotProcessableException.class})
     public ResponseEntity<Object> handleNotProcessableException(Exception ex, WebRequest request) {
         return prepareRestException(ex, request, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
+    @ExceptionHandler({OperationNotAcceptableException.class})
+    public ResponseEntity<Object> handleOperationNotAllowedException(Exception ex, WebRequest request) {
+        return prepareRestException(ex, request, HttpStatus.NOT_ACCEPTABLE);
     }
 
     @Override

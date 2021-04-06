@@ -1,7 +1,7 @@
 ## Spring-BookLibrary
 > Spring RESTFul BookLibrary (Case Study)
 
-A small but powerful RESTFul service for the management of a Book Library.
+A small but powerful monolithic RESTFul service for the management of a Book Library.
 
 
 ## Motivation
@@ -17,17 +17,18 @@ Project is created with:
 * Spring Boot 2.3.9
 * Spring Web
 * Spring Data
+* Spring Security
 * DBUnit 2.5.4
 * Spring Test DBUnit 1.3.0
 * Jackson 2.11.1
-* Swagger 2.9.2
+* Swagger 3.0.0
 * Lombok 1.18.18
 
 
 ## Features
 - [x] Book management
-- [x] User management and authentication
-- [ ] User authorization
+- [x] User management
+- [x] Access management (authentication + authorization)
 - [ ] Reservation management
 
 
@@ -43,9 +44,12 @@ java -jar target/*.jar
 ```
 
 ## Documentation
-The exported RESTFul APIs are documented using [Swagger framework](https://swagger.io/), you can access the provided documentation by running Spring-BookLibrary and opening [Swing UI](http://localhost:8080/springbooklibrary/swagger-ui.html) on your browser.
+The exported RESTFul APIs are documented using [Swagger framework](https://swagger.io/), you can access the provided documentation by running Spring-BookLibrary and opening [Swing UI](http://localhost:8080/springbooklibrary/swagger-ui/) on your browser.
 
 <img src="Spring-BootLibrary_Swagger-Capture.jpg">
+
+Please use the <b>Authorize</b> button to test the CRUD operations with different user profiles. Feel free to use the test credentials Username "test" with Password "test".
+
 
 ## Test
 This project provides a [sample dashboard](Spring-BootLibrary_Insomnia-Dashboard.json) for [Insomnia REST Client](https://insomnia.rest/)
