@@ -2,4 +2,18 @@
 <dataset>
     <publisher id="1" name="Mondadori"/> 
     <publisher id="2" name="Einaudi"/> 
+    
+    <role id="1" name="admin"/> 
+    <role id="2" name="user"/>
+	
+    <!-- username="admin" password="admin" -->
+    <enduser id="1" name="Admin" surname="Admin" username="admin" password="$2y$10$1zyH1wPffdquP5Cr0bo9Uem7j9odP1Ur5lRYTp/ty8mPbxfzOlWUa"/>
+    <!-- username="user" password="user" -->
+    <enduser id="2" name="Test" surname="User" username="user" password="$2y$10$oQaVrh4dd/hvbYacnGd9RuMzm9SclI66GSG0FIDWCLhhA8goN5AYO"/>
+    
+    <!-- Admin roles: admin, user --> 
+    <enduserrole id="1" enduser_id="1" role_id="1"/>
+    <enduserrole id="2" enduser_id="1" role_id="2"/>
+    <!-- User roles: user --> 
+    <enduserrole id="3" enduser_id="2" role_id="2"/> 
 </dataset>
