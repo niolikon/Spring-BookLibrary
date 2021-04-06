@@ -44,6 +44,7 @@ java -jar target/*.jar
 
 ## Documentation
 The exported RESTFul APIs are documented using [Swagger framework](https://swagger.io/), you can access the provided documentation by running Spring-BookLibrary and opening [Swing UI](http://localhost:8080/springbooklibrary/swagger-ui.html) on your browser.
+Please use the test credentials, Username "test" with Password "test".
 
 <img src="Spring-BootLibrary_Swagger-Capture.jpg">
 

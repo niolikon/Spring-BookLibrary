@@ -37,10 +37,13 @@ import com.github.springtestdbunit.annotation.DatabaseSetup;
 public class BookControllerIntegrationTest extends DBUnitTest {
     
     @Autowired
-    private MockMvc wockMvc;
+    private MockMvc mockMvc;
 
-    private final String ADMIN_USERNAME   = "admin";
-    private final String ADMIN_PASSWORD   = "admin";
+    private final String ADMIN_USERNAME     = "admin";
+    private final String ADMIN_PASSWORD     = "admin";
+
+    private final String USER_USERNAME      = "user";
+    private final String USER_PASSWORD      = "user";
     
     private List<Book> fetchSnapshot() throws DataSetException {
         List<Book> bookList = new ArrayList<>();
@@ -88,12 +91,12 @@ public class BookControllerIntegrationTest extends DBUnitTest {
 
     @Test
     @DatabaseSetup(value = "/dataset-books.xml", type = DatabaseOperation.CLEAN_INSERT)
-    public void get_ExistentIdGiven_ShouldReturnBook() throws Exception {
+    public void get_ExistentIdGiven_AdminAuth_ShouldReturnBook() throws Exception {
         List<Book> snapshot = this.fetchSnapshot();
         Book book = snapshot.get(0);
         Long book_id = book.getId();
         
-        wockMvc.perform(MockMvcRequestBuilders.get("/books/"+ book_id.toString())
+        mockMvc.perform(MockMvcRequestBuilders.get("/books/"+ book_id.toString())
                 .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
                 .with(csrf().asHeader())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -114,12 +117,55 @@ public class BookControllerIntegrationTest extends DBUnitTest {
 
     @Test
     @DatabaseSetup(value = "/dataset-books.xml", type = DatabaseOperation.CLEAN_INSERT)
-    public void get_NonExistentIdGiven_ShouldReturnError() throws Exception {
+    public void get_ExistentIdGiven_UserAuth_ShouldReturnBook() throws Exception {
+        List<Book> snapshot = this.fetchSnapshot();
+        Book book = snapshot.get(0);
+        Long book_id = book.getId();
+        
+        mockMvc.perform(MockMvcRequestBuilders.get("/books/"+ book_id.toString())
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(USER_USERNAME, USER_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        
+        //.andDo(print())
+        
+        .andExpect(status().isOk())
+        .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(book.getId()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(book.getTitle()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.quantity").value(book.getQuantity()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.author.id").value(book.getAuthor().getId()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.author.name").value(book.getAuthor().getName()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.author.surname").value(book.getAuthor().getSurname()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.publisher.id").value(book.getPublisher().getId()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.publisher.name").value(book.getPublisher().getName()));
+    }
+
+    @Test
+    @DatabaseSetup(value = "/dataset-books.xml", type = DatabaseOperation.CLEAN_INSERT)
+    public void get_ExistentIdGiven_NoAuth_ShouldReturnError() throws Exception {
+        List<Book> snapshot = this.fetchSnapshot();
+        Book book = snapshot.get(0);
+        Long book_id = book.getId();
+        
+        mockMvc.perform(MockMvcRequestBuilders.get("/books/"+ book_id.toString())
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        
+        //.andDo(print())
+        
+        .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DatabaseSetup(value = "/dataset-books.xml", type = DatabaseOperation.CLEAN_INSERT)
+    public void get_NonExistentIdGiven_AdminAuth_ShouldReturnError() throws Exception {
         List<Book> snapshot = this.fetchSnapshot();
         Book book = snapshot.get(snapshot.size() - 1);
         Long book_outofboundId = book.getId() + 1;
 
-        wockMvc.perform(MockMvcRequestBuilders.get("/books/"+ book_outofboundId.toString())
+        mockMvc.perform(MockMvcRequestBuilders.get("/books/"+ book_outofboundId.toString())
                 .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
                 .with(csrf().asHeader())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -133,13 +179,13 @@ public class BookControllerIntegrationTest extends DBUnitTest {
     
     @Test
     @DatabaseSetup(value = "/dataset-books.xml", type = DatabaseOperation.CLEAN_INSERT)
-    public void getAll_ExistentIdGiven_ShouldReturnAll() throws Exception {
+    public void getAll_AdminAuth_ShouldReturnAll() throws Exception {
         List<Book> snapshot = this.fetchSnapshot();
         Integer snapshot_lastIdx = snapshot.size() - 1;
         Book book_first = snapshot.get(0);
         Book book_last = snapshot.get(snapshot_lastIdx);
         
-        wockMvc.perform(MockMvcRequestBuilders.get("/books")
+        mockMvc.perform(MockMvcRequestBuilders.get("/books")
                 .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
                 .with(csrf().asHeader())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -165,10 +211,58 @@ public class BookControllerIntegrationTest extends DBUnitTest {
         .andExpect(MockMvcResultMatchers.jsonPath("$.content["+snapshot_lastIdx+"].publisher.id").value(book_last.getPublisher().getId()))
         .andExpect(MockMvcResultMatchers.jsonPath("$.content["+snapshot_lastIdx+"].publisher.name").value(book_last.getPublisher().getName()));
     }
+    
+    @Test
+    @DatabaseSetup(value = "/dataset-books.xml", type = DatabaseOperation.CLEAN_INSERT)
+    public void getAll_UserAuth_ShouldReturnAll() throws Exception {
+        List<Book> snapshot = this.fetchSnapshot();
+        Integer snapshot_lastIdx = snapshot.size() - 1;
+        Book book_first = snapshot.get(0);
+        Book book_last = snapshot.get(snapshot_lastIdx);
+        
+        mockMvc.perform(MockMvcRequestBuilders.get("/books")
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(USER_USERNAME, USER_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        
+        //.andDo(print())
+        
+        .andExpect(status().isOk())
+        .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].id").value(book_first.getId().toString()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].title").value(book_first.getTitle()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].quantity").value(book_first.getQuantity()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].author.id").value(book_first.getAuthor().getId()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].author.name").value(book_first.getAuthor().getName()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].author.surname").value(book_first.getAuthor().getSurname()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].publisher.id").value(book_first.getPublisher().getId()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].publisher.name").value(book_first.getPublisher().getName()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.content["+snapshot_lastIdx+"].id").value(book_last.getId().toString()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.content["+snapshot_lastIdx+"].title").value(book_last.getTitle()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.content["+snapshot_lastIdx+"].quantity").value(book_last.getQuantity()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.content["+snapshot_lastIdx+"].author.id").value(book_last.getAuthor().getId()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.content["+snapshot_lastIdx+"].author.name").value(book_last.getAuthor().getName()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.content["+snapshot_lastIdx+"].author.surname").value(book_last.getAuthor().getSurname()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.content["+snapshot_lastIdx+"].publisher.id").value(book_last.getPublisher().getId()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.content["+snapshot_lastIdx+"].publisher.name").value(book_last.getPublisher().getName()));
+    }
+    
+    @Test
+    @DatabaseSetup(value = "/dataset-books.xml", type = DatabaseOperation.CLEAN_INSERT)
+    public void getAll_NoAuth_ShouldReturnError() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get("/books")
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        
+        //.andDo(print())
+        
+        .andExpect(status().isUnauthorized());
+    }
 
     @Test
     @DatabaseSetup(value = "/dataset-books.xml", type = DatabaseOperation.CLEAN_INSERT)
-    public void post_NewBookGiven_ShouldCreateBook() throws Exception {
+    public void post_NewBookGiven_AdminAuth_ShouldCreateBook() throws Exception {
         List<Book> snapshot = this.fetchSnapshot();
         Integer snapshot_lastIdx = snapshot.size() - 1;
         Book book_first = snapshot.get(0);
@@ -179,7 +273,7 @@ public class BookControllerIntegrationTest extends DBUnitTest {
         bookRequest.setAuthorId(book_first.getAuthor().getId());
         bookRequest.setPublisherId(book_last.getPublisher().getId());
         
-        wockMvc.perform(MockMvcRequestBuilders.post("/books")
+        mockMvc.perform(MockMvcRequestBuilders.post("/books")
                 .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
                 .with(csrf().asHeader())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -198,10 +292,59 @@ public class BookControllerIntegrationTest extends DBUnitTest {
         .andExpect(MockMvcResultMatchers.jsonPath("$.publisher.id").value(book_last.getPublisher().getId()))
         .andExpect(MockMvcResultMatchers.jsonPath("$.publisher.name").value(book_last.getPublisher().getName()));
     }
+
+    @Test
+    @DatabaseSetup(value = "/dataset-books.xml", type = DatabaseOperation.CLEAN_INSERT)
+    public void post_NewBookGiven_UserAuth_ShouldReturnError() throws Exception {
+        List<Book> snapshot = this.fetchSnapshot();
+        Integer snapshot_lastIdx = snapshot.size() - 1;
+        Book book_first = snapshot.get(0);
+        Book book_last = snapshot.get(snapshot_lastIdx);
+        BookRequest bookRequest = new BookRequest();
+        bookRequest.setTitle("Test book name");
+        bookRequest.setQuantity(100);
+        bookRequest.setAuthorId(book_first.getAuthor().getId());
+        bookRequest.setPublisherId(book_last.getPublisher().getId());
+        
+        mockMvc.perform(MockMvcRequestBuilders.post("/books")
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(USER_USERNAME, USER_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(bookRequest))
+                .accept(MediaType.APPLICATION_JSON))
+        
+        //.andDo(print())
+        
+        .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DatabaseSetup(value = "/dataset-books.xml", type = DatabaseOperation.CLEAN_INSERT)
+    public void post_NewBookGiven_NoAuth_ShouldReturnError() throws Exception {
+        List<Book> snapshot = this.fetchSnapshot();
+        Integer snapshot_lastIdx = snapshot.size() - 1;
+        Book book_first = snapshot.get(0);
+        Book book_last = snapshot.get(snapshot_lastIdx);
+        BookRequest bookRequest = new BookRequest();
+        bookRequest.setTitle("Test book name");
+        bookRequest.setQuantity(100);
+        bookRequest.setAuthorId(book_first.getAuthor().getId());
+        bookRequest.setPublisherId(book_last.getPublisher().getId());
+        
+        mockMvc.perform(MockMvcRequestBuilders.post("/books")
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(bookRequest))
+                .accept(MediaType.APPLICATION_JSON))
+        
+        //.andDo(print())
+        
+        .andExpect(status().isUnauthorized());
+    }
     
     @Test
     @DatabaseSetup(value = "/dataset-books.xml", type = DatabaseOperation.CLEAN_INSERT)
-    public void post_ExistentBookGiven_ShouldReturnError() throws Exception {
+    public void post_ExistentBookGiven_AdminAuth_ShouldReturnError() throws Exception {
         List<Book> snapshot = this.fetchSnapshot();
         Book book = snapshot.get(0);
         BookRequest bookRequest = new BookRequest();
@@ -210,7 +353,7 @@ public class BookControllerIntegrationTest extends DBUnitTest {
         bookRequest.setAuthorId(book.getAuthor().getId());
         bookRequest.setPublisherId(book.getPublisher().getId());
         
-        wockMvc.perform(MockMvcRequestBuilders.post("/books")
+        mockMvc.perform(MockMvcRequestBuilders.post("/books")
                 .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
                 .with(csrf().asHeader())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -225,12 +368,12 @@ public class BookControllerIntegrationTest extends DBUnitTest {
 
     @Test
     @DatabaseSetup(value = "/dataset-books.xml", type = DatabaseOperation.CLEAN_INSERT)
-    public void delete_ExistentIdGiven_ShouldReturnBook() throws Exception {
+    public void delete_ExistentIdGiven_AdminAuth_ShouldDeleteBook() throws Exception {
         List<Book> snapshot = this.fetchSnapshot();
         Book book = snapshot.get(0);
         Long book_id = book.getId();
         
-        wockMvc.perform(MockMvcRequestBuilders.delete("/books/"+ book_id.toString())
+        mockMvc.perform(MockMvcRequestBuilders.delete("/books/"+ book_id.toString())
                 .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
                 .with(csrf().asHeader())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -243,12 +386,47 @@ public class BookControllerIntegrationTest extends DBUnitTest {
 
     @Test
     @DatabaseSetup(value = "/dataset-books.xml", type = DatabaseOperation.CLEAN_INSERT)
-    public void delete_NonExistentIdGiven_ShouldReturnError() throws Exception {
+    public void delete_ExistentIdGiven_UserAuth_ShouldReturnError() throws Exception {
+        List<Book> snapshot = this.fetchSnapshot();
+        Book book = snapshot.get(0);
+        Long book_id = book.getId();
+        
+        mockMvc.perform(MockMvcRequestBuilders.delete("/books/"+ book_id.toString())
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(USER_USERNAME, USER_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        
+        //.andDo(print())
+        
+        .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DatabaseSetup(value = "/dataset-books.xml", type = DatabaseOperation.CLEAN_INSERT)
+    public void delete_ExistentIdGiven_NoAuth_ShouldReturnError() throws Exception {
+        List<Book> snapshot = this.fetchSnapshot();
+        Book book = snapshot.get(0);
+        Long book_id = book.getId();
+        
+        mockMvc.perform(MockMvcRequestBuilders.delete("/books/"+ book_id.toString())
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        
+        //.andDo(print())
+        
+        .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DatabaseSetup(value = "/dataset-books.xml", type = DatabaseOperation.CLEAN_INSERT)
+    public void delete_NonExistentIdGiven_AdminAuth_ShouldReturnError() throws Exception {
         List<Book> snapshot = this.fetchSnapshot();
         Book book = snapshot.get(snapshot.size() - 1);
         Long book_outofboundId = book.getId() + 1;
 
-        wockMvc.perform(MockMvcRequestBuilders.delete("/books/"+ book_outofboundId.toString())
+        mockMvc.perform(MockMvcRequestBuilders.delete("/books/"+ book_outofboundId.toString())
                 .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
                 .with(csrf().asHeader())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -263,7 +441,7 @@ public class BookControllerIntegrationTest extends DBUnitTest {
 
     @Test
     @DatabaseSetup(value = "/dataset-books.xml", type = DatabaseOperation.CLEAN_INSERT)
-    public void put_ExistentBookGiven_ShouldModifyBook() throws Exception {
+    public void put_ExistentBookGiven_AdminAuth_ShouldModifyBook() throws Exception {
         List<Book> snapshot = this.fetchSnapshot();
         Book book = snapshot.get(0);
         Long book_id = book.getId();
@@ -273,7 +451,7 @@ public class BookControllerIntegrationTest extends DBUnitTest {
         bookRequest.setAuthorId(book.getAuthor().getId());
         bookRequest.setPublisherId(book.getPublisher().getId());
         
-        wockMvc.perform(MockMvcRequestBuilders.put("/books/" + book_id.toString())
+        mockMvc.perform(MockMvcRequestBuilders.put("/books/" + book_id.toString())
                 .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
                 .with(csrf().asHeader())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -292,17 +470,64 @@ public class BookControllerIntegrationTest extends DBUnitTest {
         .andExpect(MockMvcResultMatchers.jsonPath("$.publisher.id").value(book.getPublisher().getId()))
         .andExpect(MockMvcResultMatchers.jsonPath("$.publisher.name").value(book.getPublisher().getName()));
     }
+
+    @Test
+    @DatabaseSetup(value = "/dataset-books.xml", type = DatabaseOperation.CLEAN_INSERT)
+    public void put_ExistentBookGiven_UserAuth_ShouldReturnError() throws Exception {
+        List<Book> snapshot = this.fetchSnapshot();
+        Book book = snapshot.get(0);
+        Long book_id = book.getId();
+        BookRequest bookRequest = new BookRequest();
+        bookRequest.setTitle("Modified name");
+        bookRequest.setQuantity(book.getQuantity());
+        bookRequest.setAuthorId(book.getAuthor().getId());
+        bookRequest.setPublisherId(book.getPublisher().getId());
+        
+        mockMvc.perform(MockMvcRequestBuilders.put("/books/" + book_id.toString())
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(USER_USERNAME, USER_PASSWORD))
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(bookRequest))
+                .accept(MediaType.APPLICATION_JSON))
+        
+        //.andDo(print())
+        
+        .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DatabaseSetup(value = "/dataset-books.xml", type = DatabaseOperation.CLEAN_INSERT)
+    public void put_ExistentBookGiven_NoAuth_ShouldReturnError() throws Exception {
+        List<Book> snapshot = this.fetchSnapshot();
+        Book book = snapshot.get(0);
+        Long book_id = book.getId();
+        BookRequest bookRequest = new BookRequest();
+        bookRequest.setTitle("Modified name");
+        bookRequest.setQuantity(book.getQuantity());
+        bookRequest.setAuthorId(book.getAuthor().getId());
+        bookRequest.setPublisherId(book.getPublisher().getId());
+        
+        mockMvc.perform(MockMvcRequestBuilders.put("/books/" + book_id.toString())
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(bookRequest))
+                .accept(MediaType.APPLICATION_JSON))
+        
+        //.andDo(print())
+        
+        .andExpect(status().isUnauthorized());
+    }
     
     @Test
     @DatabaseSetup(value = "/dataset-books.xml", type = DatabaseOperation.CLEAN_INSERT)
-    public void put_NonExistentBookGiven_ShouldReturnError() throws Exception {
+    public void put_NonExistentBookGiven_AdminAuth_ShouldReturnError() throws Exception {
         List<Book> snapshot = this.fetchSnapshot();
         Book book = snapshot.get(snapshot.size() - 1);
         Long book_outofboundId = book.getId() + 1L;
         BookRequest bookRequest = new BookRequest();
         bookRequest.setTitle(book.getTitle());
         
-        wockMvc.perform(MockMvcRequestBuilders.put("/books/" + book_outofboundId.toString())
+        mockMvc.perform(MockMvcRequestBuilders.put("/books/" + book_outofboundId.toString())
                 .with(SecurityMockMvcRequestPostProcessors.httpBasic(ADMIN_USERNAME, ADMIN_PASSWORD))
                 .with(csrf().asHeader())
                 .contentType(MediaType.APPLICATION_JSON)
