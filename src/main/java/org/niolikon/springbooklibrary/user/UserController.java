@@ -67,7 +67,8 @@ public class UserController {
             @ApiResponse(code = 200, message = "The User has been fetched"),
             @ApiResponse(code = 404, message = "Could not find the specified User"),
             @ApiResponse(code = 403, message = "You are not authorized to access this resource"),
-            @ApiResponse(code = 401, message = "You are not logged in") })
+            @ApiResponse(code = 401, message = "You are not logged in"),
+            @ApiResponse(code = 406, message = "You are not allowed to access others' user data") })
     public UserView getUser(@ApiParam("The ID of the User") @PathVariable Long id, 
             @ApiIgnore @AuthenticationPrincipal UserDetails principal) {  
         UserView userView = service.getUser(id);
@@ -90,7 +91,8 @@ public class UserController {
             @ApiResponse(code = 200, message = "The Users have been fetched"),
             @ApiResponse(code = 404, message = "No Users are present in the repository"),
             @ApiResponse(code = 403, message = "You are not authorized to access this resource"),
-            @ApiResponse(code = 401, message = "You are not logged in") })
+            @ApiResponse(code = 401, message = "You are not logged in"),
+            @ApiResponse(code = 406, message = "You are not allowed to access others' user data") })
     public Page<UserView> getAllUsers(@PageableDefault(sort = "id", direction = Sort.Direction.ASC) Pageable pageable,
             @ApiIgnore @AuthenticationPrincipal UserDetails principal) {
         boolean isAdminUser = principal.getAuthorities().stream().anyMatch( role -> role.getAuthority().matches("ROLE_ADMIN"));
@@ -141,7 +143,8 @@ public class UserController {
             @ApiResponse(code = 404, message = "Could not find the specified User"),
             @ApiResponse(code = 409, message = "Could not complete the modification, the input User data would cause duplication"),
             @ApiResponse(code = 403, message = "You are not authorized to access this resource"),
-            @ApiResponse(code = 401, message = "You are not logged in") })
+            @ApiResponse(code = 401, message = "You are not logged in"),
+            @ApiResponse(code = 406, message = "You are not allowed to perform the requested modification") })
     public UserView updateUser(@ApiParam("The ID of the User") @PathVariable Long id,
             @ApiParam("The input User data") @RequestBody @Valid UserRequest req,
             @ApiIgnore @AuthenticationPrincipal UserDetails principal) {

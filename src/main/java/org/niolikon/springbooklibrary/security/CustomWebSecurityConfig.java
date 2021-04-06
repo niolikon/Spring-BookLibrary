@@ -83,8 +83,6 @@ public class CustomWebSecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers(SWAGGER_WHITELIST)
 
             .antMatchers(HttpMethod.OPTIONS, "/**")
-            .antMatchers(HttpMethod.GET, "/csrf")
-            .antMatchers(HttpMethod.GET, "/error")
             .antMatchers(HttpMethod.GET, "/h2-console/**")
             .antMatchers(HttpMethod.POST, "/h2-console/**");
     }

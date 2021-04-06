@@ -3,11 +3,10 @@ package org.niolikon.springbooklibrary.system;
 import static springfox.documentation.builders.PathSelectors.regex;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import com.google.common.collect.Lists;
 
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.RequestHandlerSelectors;
@@ -39,8 +38,8 @@ public class BooklibrarySwaggerConfig {
                     .paths(regex("/.*"))
                 .build()
                 .apiInfo(apiInfo())
-                .securityContexts(Lists.newArrayList(securityContext()))
-                .securitySchemes(Lists.newArrayList(basicAuthScheme()));
+                .securityContexts(List.of(securityContext()))
+                .securitySchemes(List.of(basicAuthScheme()));
     }
     
     private ApiInfo apiInfo() 
@@ -48,7 +47,7 @@ public class BooklibrarySwaggerConfig {
         return new ApiInfoBuilder()
                 .title("Spring-BookLibrary")
                 .description("A small but powerful RESTFul service for the management of a Book Library")
-                .version("0.0.1-A04")
+                .version("0.0.1-A05")
                 .license("MIT License")
                 .licenseUrl("https://github.com/niolikon/Spring-BookLibrary/blob/main/LICENSE")
                 .contact(new Contact("Simone Andrea Muscas",  "https://www.linkedin.com/in/simoneandreamuscas/", 

@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>org.niolikon</groupId>
 	<artifactId>spring-booklibrary</artifactId>
-	<version>0.0.1-A04</version>
+	<version>0.0.1-A05</version>
 	<packaging>war</packaging>
 	<name>Spring-BookLibrary</name>
 	<description>Case study project for Spring Boot</description>
